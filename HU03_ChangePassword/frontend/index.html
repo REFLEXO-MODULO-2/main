@@ -1,0 +1,79 @@
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prueba - Cambio de Contraseña</title>
+    </head>
+    <body>
+    <div id="root"></div>
+        <!-- Arranque: python manage.py runserver -->
+    <!-- React, ReactDOM y Babel desde CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Todo en un solo archivo JSX -->
+    <script type="text/babel">
+
+        const api = axios.create({
+        baseURL: 'http://localhost:8000/api/',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+        });
+
+        const ChangesPassword = () => {
+        const [current, setCurrent] = React.useState('');
+        const [newPass, setNewPass] = React.useState('');
+        const [confirm, setConfirm] = React.useState('');
+        const [msg, setMsg] = React.useState('');
+
+        const handleSubmit = async (e) => {
+            e.preventDefault();
+            try {
+            const res = await api.post('auth/change-password/', {
+                current_password: current,
+                new_password: newPass,
+                confirm_password: confirm
+            });
+            setMsg(`✅ ${res.data.message || 'Contraseña actualizada con éxito'}`);
+            } catch (err) {
+            setMsg(`❌ ${err.response?.data?.message || 'Error al cambiar contraseña'}`);
+            }
+        };
+
+        return (
+            <form onSubmit={handleSubmit}>
+            <div>
+                <label>Contraseña actual:</label><br />
+                <input type="password" value={current} onChange={e => setCurrent(e.target.value)} required />
+            </div>
+            <div>
+                <label>Nueva contraseña:</label><br />
+                <input type="password" value={newPass} onChange={e => setNewPass(e.target.value)} required />
+            </div>
+            <div>
+                <label>Confirmar contraseña:</label><br />
+                <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)} required />
+            </div>
+            <button type="submit">Cambiar</button>
+            <p>{msg}</p>
+            </form>
+        );
+        };
+
+        const App = () => (
+        <div style={{ maxWidth: '400px', margin: '40px auto', fontFamily: 'Arial' }}>
+            <h2>Cambio de Contraseña</h2>
+            <ChangesPassword />
+        </div>
+        );
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+
+    </script>
+    </body>
+    </html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prueba - Cambio de Contraseña</title>
+</head>
+<body>
+    <!-- Contenedor donde React montará la aplicación -->
+    <div id="root"></div>
+
+    <!-- Comentario de referencia para iniciar el backend de Django -->
+    <!-- Arranque: python manage.py runserver -->
+
+    <!-- Carga de librerías necesarias desde un CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script> <!-- React -->
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script> <!-- ReactDOM -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script> <!-- Axios para peticiones HTTP -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script> <!-- Babel para compilar JSX en el navegador -->
+
+    <!-- Todo el código React y JSX en un solo bloque -->
+    <script type="text/babel">
+
+        // Configuración de Axios para conectarse con la API en Django
+        const api = axios.create({
+            baseURL: 'http://localhost:8000/api/', // URL base del backend
+            headers: {
+                'Content-Type': 'application/json' // Formato de datos enviados
+            }
+        });
+
+        // Componente que gestiona el formulario de cambio de contraseña
+        const ChangesPassword = () => {
+            // Estados para almacenar los valores del formulario y mensajes
+            const [current, setCurrent] = React.useState(''); // Contraseña actual
+            const [newPass, setNewPass] = React.useState(''); // Nueva contraseña
+            const [confirm, setConfirm] = React.useState(''); // Confirmación de la nueva contraseña
+            const [msg, setMsg] = React.useState(''); // Mensaje de éxito o error
+
+            // Función que maneja el envío del formulario
+            const handleSubmit = async (e) => {
+                e.preventDefault(); // Evita que la página se recargue
+                try {
+                    // Petición POST a la API para cambiar la contraseña
+                    const res = await api.post('auth/change-password/', {
+                        current_password: current,
+                        new_password: newPass,
+                        confirm_password: confirm
+                    });
+                    // Mensaje de éxito
+                    setMsg(`✅ ${res.data.message || 'Contraseña actualizada con éxito'}`);
+                } catch (err) {
+                    // Mensaje de error
+                    setMsg(`❌ ${err.response?.data?.message || 'Error al cambiar contraseña'}`);
+                }
+            };
+
+            // Renderizado del formulario
+            return (
+                <form onSubmit={handleSubmit}>
+                    <div>
+                        <label>Contraseña actual:</label><br />
+                        <input 
+                            type="password" 
+                            value={current} 
+                            onChange={e => setCurrent(e.target.value)} 
+                            required 
+                        />
+                    </div>
+                    <div>
+                        <label>Nueva contraseña:</label><br />
+                        <input 
+                            type="password" 
+                            value={newPass} 
+                            onChange={e => setNewPass(e.target.value)} 
+                            required 
+                        />
+                    </div>
+                    <div>
+                        <label>Confirmar contraseña:</label><br />
+                        <input 
+                            type="password" 
+                            value={confirm} 
+                            onChange={e => setConfirm(e.target.value)} 
+                            required 
+                        />
+                    </div>
+                    <button type="submit">Cambiar</button>
+                    <p>{msg}</p> {/* Mensaje de estado */}
+                </form>
+            );
+        };
+
+        // Componente principal de la aplicación
+        const App = () => (
+            <div style={{ maxWidth: '400px', margin: '40px auto', fontFamily: 'Arial' }}>
+                <h2>Cambio de Contraseña</h2>
+                <ChangesPassword /> {/* Llamada al componente del formulario */}
+            </div>
+        );
+
+        // Montaje de la aplicación React dentro del div con id="root"
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+
+    </script>
+</body>
+</html>
