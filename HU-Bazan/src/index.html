@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔗 Demostración de Conexión API</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .title {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .status-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            background: #fafafa;
+        }
+        .status-card.connected {
+            border-color: #52c41a;
+            background: #f6ffed;
+        }
+        .status-card.disconnected {
+            border-color: #ff4d4f;
+            background: #fff2f0;
+        }
+        .status-card.checking {
+            border-color: #1890ff;
+            background: #f0f9ff;
+        }
+        .status-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .status-icon {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+        .connected .status-icon { color: #52c41a; }
+        .disconnected .status-icon { color: #ff4d4f; }
+        .checking .status-icon { color: #1890ff; }
+        .url {
+            font-family: monospace;
+            background: #f0f0f0;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .test-button {
+            background: #1890ff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 20px 0;
+            width: 100%;
+        }
+        .test-button:hover {
+            background: #40a9ff;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .result.success {
+            background: #f6ffed;
+            border: 1px solid #b7eb8f;
+            color: #52c41a;
+        }
+        .result.error {
+            background: #fff2f0;
+            border: 1px solid #ffccc7;
+            color: #ff4d4f;
+        }
+        .info-box {
+            background: #e6f7ff;
+            border: 1px solid #91d5ff;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">🔗 Demostración de Conexión API</h1>
+        
+        <div class="info-box">
+            <h3>📋 Información del Sistema</h3>
+            <p><strong>Backend Django:</strong> Servidor API en Python (puerto 8000)</p>
+            <p><strong>HU02:</strong> Gestión de perfiles de usuario</p>
+            <p><strong>HU05:</strong> Búsqueda y filtros de usuarios</p>
+            <p><strong>Frontend React:</strong> Interfaz de usuario (puerto 5174)</p>
+        </div>
+
+        <div id="django-card" class="status-card checking">
+            <div class="status-header">
+                <div>
+                    <span class="status-icon">🔄</span>
+                    <strong>Backend Django</strong>
+                </div>
+                <span class="status-text">Verificando...</span>
+            </div>
+            <div class="url">http://127.0.0.1:8000/api/</div>
+            <div id="django-result" class="result"></div>
+        </div>
+
+        <div id="hu02-card" class="status-card checking">
+            <div class="status-header">
+                <div>
+                    <span class="status-icon">🔄</span>
+                    <strong>Módulo HU02 - Gestión de Perfiles</strong>
+                </div>
+                <span class="status-text">Verificando...</span>
+            </div>
+            <div class="url">http://127.0.0.1:8000/api/profile/me/</div>
+            <div id="hu02-result" class="result"></div>
+        </div>
+
+        <div id="hu05-card" class="status-card checking">
+            <div class="status-header">
+                <div>
+                    <span class="status-icon">🔄</span>
+                    <strong>Módulo HU05 - Búsqueda de Usuarios</strong>
+                </div>
+                <span class="status-text">Verificando...</span>
+            </div>
+            <div class="url">http://127.0.0.1:8000/api/users/search/</div>
+            <div id="hu05-result" class="result"></div>
+        </div>
+
+        <div id="react-card" class="status-card checking">
+            <div class="status-header">
+                <div>
+                    <span class="status-icon">🔄</span>
+                    <strong>Frontend React</strong>
+                </div>
+                <span class="status-text">Verificando...</span>
+            </div>
+            <div class="url">http://localhost:5174/</div>
+            <div id="react-result" class="result"></div>
+        </div>
+
+        <button class="test-button" onclick="testAllConnections()">
+            🔄 Actualizar Estado de Conexión
+        </button>
+    </div>
+
+    <script>
+        async function testEndpoint(name, url) {
+            try {
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                return { 
+                    success: true, 
+                    status: response.status, 
+                    data: await response.text() 
+                };
+            } catch (error) {
+                return { 
+                    success: false, 
+                    status: 'No response',
+                    error: error.message 
+                };
+            }
+        }
+
+        function updateCard(cardId, status, result) {
+            const card = document.getElementById(cardId);
+            const icon = card.querySelector('.status-icon');
+            const statusText = card.querySelector('.status-text');
+            const resultDiv = card.querySelector('.result');
+
+            // Remove all status classes
+            card.classList.remove('connected', 'disconnected', 'checking');
+
+            if (status === 'connected') {
+                card.classList.add('connected');
+                icon.textContent = '✅';
+                statusText.textContent = 'Conectado';
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `Status: ${result.status} | ✅ Funcionando`;
+            } else if (status === 'disconnected') {
+                card.classList.add('disconnected');
+                icon.textContent = '❌';
+                statusText.textContent = 'Desconectado';
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `Status: ${result.status} | ❌ Error: ${result.error}`;
+            } else {
+                card.classList.add('checking');
+                icon.textContent = '🔄';
+                statusText.textContent = 'Verificando...';
+                resultDiv.textContent = '';
+            }
+        }
+
+        async function testAllConnections() {
+            // Test Django
+            updateCard('django-card', 'checking');
+            const djangoTest = await testEndpoint('Django', 'http://127.0.0.1:8000/api/');
+            updateCard('django-card', djangoTest.success ? 'connected' : 'disconnected', djangoTest);
+
+            // Test HU02
+            updateCard('hu02-card', 'checking');
+            const hu02Test = await testEndpoint('HU02', 'http://127.0.0.1:8000/api/profile/me/');
+            updateCard('hu02-card', hu02Test.success ? 'connected' : 'disconnected', hu02Test);
+
+            // Test HU05
+            updateCard('hu05-card', 'checking');
+            const hu05Test = await testEndpoint('HU05', 'http://127.0.0.1:8000/api/users/search/');
+            updateCard('hu05-card', hu05Test.success ? 'connected' : 'disconnected', hu05Test);
+
+            // Test React
+            updateCard('react-card', 'checking');
+            const reactTest = await testEndpoint('React', 'http://localhost:5174/');
+            updateCard('react-card', reactTest.success ? 'connected' : 'disconnected', reactTest);
+        }
+
+        // Test connections when page loads
+        window.onload = testAllConnections;
+    </script>
+</body>
+</html>

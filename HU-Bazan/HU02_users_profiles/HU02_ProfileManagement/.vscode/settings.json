@@ -1,0 +1,6 @@
+{
+  "python.analysis.extraPaths": [
+    "./",             // la raíz del proyecto
+    "./backend"       // si tu código está bajo una carpeta llamada backend
+  ]
+}

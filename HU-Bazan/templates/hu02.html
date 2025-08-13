@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Perfil - HU02</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 2rem;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .profile-card {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .profile-photo {
+            display: block;
+            margin: 0 auto 1rem;
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 3px solid #007bff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        label {
+            display: block;
+            margin-top: 1rem;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="file"] {
+            width: 100%;
+            padding: 0.5rem;
+            margin-top: 0.2rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            margin-top: 1.5rem;
+            padding: 0.6rem 1.5rem;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Gestión de Perfil</h1>
+
+    <div class="profile-card">
+        <img id="profileImage" src="http://127.0.0.1:8000/media/default_profile.jpg" alt="Foto de perfil" class="profile-photo" />
+        <p><strong>Nombre:</strong> <span id="nombreDisplay"></span></p>
+        <p><strong>Email:</strong> <span id="emailDisplay"></span></p>
+
+        <form id="profileForm">
+            <label for="first_name">Nombre</label>
+            <input type="text" id="first_name">
+
+            <label for="last_name">Apellido</label>
+            <input type="text" id="last_name">
+
+            <label for="email">Correo electrónico</label>
+            <input type="email" id="email">
+
+            <label for="photo">Actualizar Foto</label>
+            <input type="file" id="photo">
+
+            <button type="submit">Actualizar Perfil</button>
+        </form>
+    </div>
+
+    <!-- Axios CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <!-- Script principal con CSRF incluido -->
+    <script>
+        // Función para obtener el token CSRF desde cookies
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== "") {
+                const cookies = document.cookie.split(";");
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === name + "=") {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        const csrftoken = getCookie("csrftoken");
+
+        // Cargar datos del perfil
+        async function cargarPerfil() {
+            try {
+                const response = await axios.get("http://127.0.0.1:8000/api/profile/me/", {
+                    withCredentials: true
+                });
+
+                const data = response.data;
+
+                document.getElementById("nombreDisplay").innerText = `${data.first_name} ${data.last_name}`;
+                document.getElementById("emailDisplay").innerText = data.email;
+                document.getElementById("first_name").value = data.first_name;
+                document.getElementById("last_name").value = data.last_name;
+                document.getElementById("email").value = data.email;
+
+                if (data.photo_url) {
+                    document.getElementById("profileImage").src = data.photo_url;
+                }
+            } catch (error) {
+                alert("Error al cargar perfil");
+                console.error(error);
+            }
+        }
+
+        // Enviar formulario de actualización
+        document.getElementById("profileForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData();
+            formData.append("first_name", document.getElementById("first_name").value);
+            formData.append("last_name", document.getElementById("last_name").value);
+            formData.append("email", document.getElementById("email").value);
+
+            const photo = document.getElementById("photo").files[0];
+            if (photo) {
+                formData.append("photo", photo);
+            }
+
+            try {
+                await axios.put("http://127.0.0.1:8000/api/profile/me/", formData, {
+                    withCredentials: true,
+                    headers: {
+                        "X-CSRFToken": csrftoken
+                    }
+                });
+
+                alert("Perfil actualizado con éxito");
+                cargarPerfil();
+            } catch (error) {
+                alert("Error al actualizar perfil");
+                console.error(error);
+            }
+        });
+
+        window.onload = cargarPerfil;
+    </script>
+</body>
+</html>
+

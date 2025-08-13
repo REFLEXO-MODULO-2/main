@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Iniciar Sesión</title>
+</head>
+<body>
+    <h2>Iniciar Sesión</h2>
+    <form method="post">
+        {% csrf_token %}
+        <label for="id_username">Correo electrónico</label>
+        {{ form.username }}
+
+        <label for="id_password">Contraseña</label>
+        {{ form.password }}
+
+        <button type="submit">Ingresar</button>
+    </form>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Buscar Usuarios</title>
+</head>
+<body>
+    <h1>Búsqueda de Usuarios</h1>
+
+    <!-- Cambia el action al endpoint que renderiza HTML -->
+    <form action="{% url 'search_users_html' %}" method="get">
+        <label>Buscar (username): <input type="text" name="search" required></label><br>
+        <label>Per Page: <input type="number" name="per_page" value="10" required></label><br>
+        <label>Página: <input type="number" name="page" value="1"></label><br>
+        <label>Email: <input type="text" name="email"></label><br>
+        <label>Documento: <input type="text" name="documento"></label><br>
+        <label>Rol: <input type="text" name="rol"></label><br>
+        <button type="submit">Buscar</button>
+    </form>
+
+    {% if results %}
+        <h2>Resultados:</h2>
+        <ul>
+            {% for user in results %}
+                <li>{{ user.username }} - {{ user.email }}</li>
+            {% endfor %}
+        </ul>
+    {% elif request.GET %}
+        <p>No se encontraron resultados.</p>
+    {% endif %}
+</body>
+</html>
